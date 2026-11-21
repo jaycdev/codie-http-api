@@ -1,0 +1,36 @@
+{
+  "device_version": "1.6.0",
+  "source_commit": "231610b06faa184a8b3995c21d635dba32c149b8",
+  "generated_at_utc": "2026-11-20T09:26:04+00:00",
+  "http_operations": 159,
+  "http_paths": 121,
+  "guide_languages": [
+    "zh-CN",
+    "ja",
+    "en",
+    "de",
+    "fr"
+  ],
+  "openapi_languages": [
+    "zh-CN",
+    "en"
+  ],
+  "files": {
+    "index.html": "07ad1c3a32569cd2e2dbe2c4a64633755f450825fa6b7c27a0b041af58a79751",
+    "openapi.json": "245a25693899ebc72aa34297ac0a1d643c5508306db8131499bc6571541bbf88",
+    "openapi.zh-CN.json": "2234198ba6dfff9a0e613b225ecfc79b8405287ee49af094d6c0c3711c2a3189",
+    "examples/local_api.py": "cfcf2ccfa987c3df312bccc7df55087a9f6ded3f09fb556eab1116c914c2d349",
+    "examples/external_tools.py": "039944c7e94a8bedc2bf4e64c63f2101bd5c682bdb4c781532b2bd38613d2c5f",
+    "examples/media_session.py": "98987766c8d896ce895e2979a5313821c4a7914ec2989f4c6d90eabc501079f3",
+    "GUIDE.zh-CN.md": "5517fa40ef55705ad6981f577d40a72fab575e8a867876e5c47700e9c1ddc584",
+    "guide.zh-CN.html": "73ab52fb8e1a7b15bde43913a7bba5124d80177f6e0f352d8b29ea8208a7edc8",
+    "GUIDE.ja.md": "3d23bb93c954174bbab2409c58c81919cab0d2c7efdddafed3f24852d3e75939",
+    "guide.ja.html": "cfbf36339273fca5e83524fe1b8a7999b02c424fee4baeb664996cbb555e7850",
+    "GUIDE.en.md": "4405175ffa49a3c68199bde2988ce2d4bcad98b6cbe9329ffb8965a631c9b610",
+    "guide.en.html": "ea34dbaf0c25d8453a0152b3ef3e02f11eeb65211ddc991e4d8ffadbd9459409",
+    "GUIDE.de.md": "c3f266afc366cd8e02b5b9faf13fadfd9217976804a21862a676f7f4ce3428d6",
+    "guide.de.html": "5b9a3c31c277f6ba0a4cd26ede47f938f910d67f16c8148646a08f5ef7ea689c",
+    "GUIDE.fr.md": "4919dbc4e676afb98abe3c9fe71e873b38fcbcb582c718cec7fd4a1f3e50535c",
+    "guide.fr.html": "ae2a2df9e095659d77a4385e600344b57cc9deb9431cc70fe16168e64a4b5664"
+  }
+}

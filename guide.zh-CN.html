@@ -1,0 +1,89 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Codie 1.6.0 HTTP API · 中文</title><style>body{max-width:1040px;margin:32px auto;padding:0 24px;color:#192a40;font:16px/1.8 system-ui,-apple-system,"Microsoft YaHei",sans-serif}a{color:#245b8c}nav{padding:16px 0;border-bottom:1px solid #dce4ed}h1,h2{line-height:1.4}h2{margin-top:36px}code,pre{font-family:Consolas,monospace}code{font-size:.9em}pre{padding:16px;background:#f3f6fa;overflow:auto;line-height:1.6}.table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:10px;border:1px solid #dce4ed;text-align:left;vertical-align:top}th{background:#edf3f9}@media print{nav{display:none}pre{white-space:pre-wrap}}</style></head><body><nav><a href="guide.zh-CN.html" lang="zh-CN">中文</a> · <a href="guide.ja.html" lang="ja">日本語</a> · <a href="guide.en.html" lang="en">English</a> · <a href="guide.de.html" lang="de">Deutsch</a> · <a href="guide.fr.html" lang="fr">Français</a><br><a href="index.html">API Reference</a> · <a href="GUIDE.zh-CN.md" download>Markdown</a> · <a href="openapi.json" download>OpenAPI English</a> · <a href="openapi.zh-CN.json" download>OpenAPI 中文</a></nav><main><h1>Codie 1.6.0 HTTP API 内测接入指南</h1>
+<p>适用范围：运行 1.6.0 的 Codie 设备，供内测人员在局域网内通过脚本、桌面或移动应用接入。文档按 master 分支源码整理，不代表所有设备已收到该版本，也不代表全部接口已经完成设备实测。</p>
+<h2>文档包怎么用</h2>
+<p>解压 <code>Codie-HTTP-API-1.6.0.zip</code>，双击 <code>index.html</code>，即可离线搜索和查看全部公开接口的参数、请求结构、响应结构及功能权限；实际操作数和路径数见 <code>manifest.json</code>。无需启动服务或访问设备上的实验室页面。</p>
+<div class="table-scroll"><table><tr><th>文件</th><th>用途</th></tr><tr><td><code>index.html</code></td><td>完整离线接口手册，支持搜索与浏览器打印</td></tr><tr><td><code>guide.zh-CN.html</code> / <code>GUIDE.zh-CN.md</code></td><td>中文接入指南</td></tr><tr><td><code>guide.ja.html</code> / <code>GUIDE.ja.md</code></td><td>日本語接入指南</td></tr><tr><td><code>guide.en.html</code> / <code>GUIDE.en.md</code></td><td>English 接入指南</td></tr><tr><td><code>guide.de.html</code> / <code>GUIDE.de.md</code></td><td>Deutsch 接入指南</td></tr><tr><td><code>guide.fr.html</code> / <code>GUIDE.fr.md</code></td><td>Français 接入指南</td></tr><tr><td><code>openapi.json</code></td><td>默认英文 OpenAPI 3.1 接口描述；API 工具仍需自行实现 HMAC 签名</td></tr><tr><td><code>openapi.zh-CN.json</code></td><td>中文 OpenAPI；路径、字段、枚举及签名要求与英文相同</td></tr><tr><td><code>examples/local_api.py</code></td><td>配对与聊天示例；文字模式使用 Python 3 标准库，麦克风模式依赖见脚本说明</td></tr><tr><td><code>examples/external_tools.py</code></td><td>外部工具注册、连接及调用结果回传示例</td></tr><tr><td><code>examples/media_session.py</code></td><td>临时图片、音频和视频会话示例</td></tr><tr><td><code>manifest.json</code></td><td>设备版本、源码提交、生成时间及文件 SHA-256，用于确认文档批次</td></tr></table></div>
+<p>OpenAPI 的 <code>info.version=1</code> 是现有接口描述版本；设备软件版本为 1.6.0，另记在 <code>x-device-version</code> 和文档包清单中。</p>
+<p>五种语言的接入指南均随包提供 HTML 和 Markdown，可从 <code>index.html</code> 顶部选择语言。完整接口参考的导航为中文，接口描述默认英文；OpenAPI 提供默认英文 <code>openapi.json</code> 和中文 <code>openapi.zh-CN.json</code>。接口路径、字段名、枚举值和示例代码保持一致。</p>
+<h2>1. 准备设备</h2>
+<p class="step">1. 确认设备已安装 1.6.0，并已登录用户账号。</p>
+<p class="step">2. 电脑与设备在可互通的局域网中，准备设备 IP。默认 HTTP 地址是 <code>http://DEVICE_IP:8081</code>，如设备修改过端口，以实际端口为准。</p>
+<p class="step">3. 发送对话前，先唤醒并解锁设备。接口使用设备当前用户和当前角色槽位。</p>
+<p class="step">4. 先用下面的在线检测确认网络连通，再运行示例完成配对。</p>
+<pre><code>curl http://DEVICE_IP:8081/v1/api/auth/ping</code></pre>
+<p>HTTP 基础路径为 <code>/v1/api</code>。完整请求地址示例：<code>http://DEVICE_IP:8081/v1/api/data/user/system</code>。示例脚本的设备地址只填主机及端口，不加 <code>/v1/api</code>。</p>
+<h2>2. 先跑通文字对话</h2>
+<p>解压后在文档包目录中执行，Python 示例：</p>
+<pre><code>python examples/local_api.py http://DEVICE_IP:8081 &quot;你好&quot; --credentials credentials.json</code></pre>
+<p>首次运行会让设备显示配对码，在终端输入该码。示例会保存凭据，读取当前槽位，提交一轮文字对话，再查询并输出角色回复。后续运行复用同一个凭据文件。</p>
+<p>需要设备播放回复时，增加 <code>--speech device</code>：</p>
+<pre><code>python examples/local_api.py http://DEVICE_IP:8081 &quot;你好&quot; --credentials credentials.json --speech device --timeout 180</code></pre>
+<p>默认 <code>--speech none</code>，不播放回复语音；默认等待 120 秒。<code>device</code> 模式的 <code>completed</code> 表示生成与设备播放均已完成。超时不等于服务端轮次已取消，示例会输出轮次编号，供继续查询。</p>
+<p>示例默认申请 <code>session</code> 凭据：有效期 12 小时，设备服务重启后失效。需要现有长期凭据时，在首次配对增加 <code>--auth-scope permanent</code>。session 可调用公开用户接口；管理接口要求 permanent 凭据，设备功能权限仍然适用。旧凭据文件不会被覆盖或自动升级；重新配对时请指定新的文件名。凭据包含设备访问密钥，应由使用者自行保管，不随问题反馈或文档包转发。</p>
+<h2>3. 自行实现配对</h2>
+<p>以下五个操作无需 HMAC，其余公开 HTTP 操作需要签名：</p>
+<div class="table-scroll"><table><tr><th>方法</th><th>路径（含基础路径）</th><th>用途</th></tr><tr><td>GET</td><td><code>/v1/api/auth/ping</code></td><td>在线检测</td></tr><tr><td>GET</td><td><code>/v1/api/auth/bootstrap</code></td><td>获取当前 <code>user_id</code>、登录状态及语言</td></tr><tr><td>POST</td><td><code>/v1/api/auth/pair/request</code></td><td>请求在设备上显示配对码，返回 <code>challenge_id</code>，请求有效期 5 分钟</td></tr><tr><td>POST</td><td><code>/v1/api/auth/pair/confirm</code></td><td>提交配对码，获取凭据</td></tr><tr><td>POST</td><td><code>/v1/api/auth/pair/cancel</code></td><td>取消配对请求</td></tr></table></div>
+<p>确认配对的 JSON 正文：</p>
+<pre><code>{
+  &quot;challenge_id&quot;: &quot;使用 pair/request 返回的值&quot;,
+  &quot;pairing_code&quot;: &quot;设备显示的配对码&quot;,
+  &quot;auth_scope&quot;: &quot;session&quot;
+}</code></pre>
+<p><code>auth_scope</code> 支持 <code>session</code>、<code>permanent</code>；接口省略时默认 <code>permanent</code>，示例显式使用 <code>session</code>。保存响应 <code>data.local_secret</code>、<code>data.local_session_id</code>、<code>data.local_session_expires_at_ms</code>、<code>data.auth_scope</code>，以及 bootstrap 的 <code>data.user_id</code>。脚本和原生应用可以不发送 <code>Origin/Referer</code>；浏览器接入仍受设备已有来源检查约束。</p>
+<h2>4. 每个业务请求都要签名</h2>
+<p>规范串按以下顺序拼接，分隔符为 <code>|</code>，末尾没有换行：</p>
+<pre><code>METHOD|PATH|TIMESTAMP|NONCE|PAYLOAD_MODE|BODY_HASH|USER_ID</code></pre>
+<pre><code>signature = hex_lower(HMAC_SHA256(UTF8(local_secret), UTF8(canonical)))</code></pre>
+<div class="table-scroll"><table><tr><th>请求头</th><th>填写方式</th></tr><tr><td><code>X-Local-Sig</code></td><td>上述签名，64 位小写十六进制字符串</td></tr><tr><td><code>X-Local-Timestamp</code></td><td>Unix 秒数字符串，允许与设备时间相差 300 秒</td></tr><tr><td><code>X-Local-Nonce</code></td><td>每次请求生成新随机值，推荐 UUID；长度 1～128，不能含竖线或换行</td></tr><tr><td><code>X-Local-Payload-Mode</code></td><td>按下表选择</td></tr><tr><td><code>X-Local-Body-Hash</code></td><td>按下表填写</td></tr><tr><td><code>X-Local-User-Id</code></td><td>bootstrap 返回的当前 <code>user_id</code></td></tr><tr><td><code>X-Local-Session-Id</code></td><td>配对返回的 <code>local_session_id</code> 非空时必传</td></tr></table></div>
+<p><code>METHOD</code> 使用大写；<code>PATH</code> 使用含 <code>/v1/api</code> 的 URL 解码后路径，不含主机和查询字符串。密钥使用 <code>local_secret</code> 原始字符串的 UTF-8 字节，不能先做十六进制解码。签名和发送必须使用完全相同的正文字节，不能签名后再次格式化 JSON。</p>
+<div class="table-scroll"><table><tr><th>正文类型</th><th>PAYLOAD_MODE</th><th>BODY_HASH</th></tr><tr><td>无正文</td><td><code>empty</code></td><td>空字节的 SHA-256 小写十六进制值</td></tr><tr><td>JSON</td><td><code>json</code></td><td>实际 JSON 正文字节的 SHA-256 小写十六进制值</td></tr><tr><td>文件表单</td><td><code>multipart</code></td><td>固定字符串 <code>UNSIGNED-PAYLOAD</code></td></tr><tr><td>zstd 压缩上传分块</td><td><code>zstd-stream</code></td><td>实际压缩分块字节的 SHA-256 小写十六进制值</td></tr><tr><td>gzip 压缩上传分块</td><td><code>gzip-stream</code></td><td>实际压缩分块字节的 SHA-256 小写十六进制值</td></tr></table></div>
+<p>无正文哈希：<code>e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</code>。压缩分块使用 <code>application/octet-stream</code>，仅用于手册明确支持的上传接口。文件表单应由 HTTP 库生成包含 boundary 的 <code>Content-Type</code>。</p>
+<h2>5. 统一对话 API</h2>
+<div class="table-scroll"><table><tr><th>方法</th><th>路径（相对于 <code>/v1/api</code>）</th><th>用途</th></tr><tr><td>POST</td><td><code>/data/user/chat/turns</code></td><td>创建一轮对话</td></tr><tr><td>GET</td><td><code>/data/user/chat/turns/{turn_id}</code></td><td>查询本轮状态、转写和回复</td></tr><tr><td>POST</td><td><code>/data/user/chat/turns/{turn_id}/input/complete</code></td><td>结束设备麦克风输入，继续生成回复；空正文</td></tr><tr><td>POST</td><td><code>/data/user/chat/turns/{turn_id}/cancel</code></td><td>取消本轮输入、生成及播放；空正文</td></tr></table></div>
+<p>先调用 <code>GET /data/user/slot</code> 取得 <code>data.slot_number</code>。创建文字对话的正文如下，其中 <code>request_id</code> 每个新业务轮次使用新的 UUID，<code>slot</code> 换成当前槽位：</p>
+<pre><code>{
+  &quot;request_id&quot;: &quot;3f743580-bd45-4c24-96c0-61a67ac5f741&quot;,
+  &quot;slot&quot;: 1,
+  &quot;input&quot;: {&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: &quot;你好&quot;},
+  &quot;output&quot;: {&quot;speech&quot;: &quot;none&quot;}
+}</code></pre>
+<div class="table-scroll"><table><tr><th>输入</th><th>Content-Type</th><th>内容</th></tr><tr><td><code>text</code></td><td><code>application/json</code></td><td><code>input.text</code> 必填，去除首尾空白后非空，最多 16000 字符</td></tr><tr><td><code>device_microphone</code></td><td><code>application/json</code></td><td>由设备麦克风录音，不传 <code>text</code>；结束输入使用 <code>input/complete</code></td></tr><tr><td><code>image_text</code></td><td><code>multipart/form-data</code></td><td><code>request</code> 字段为上述配置的 JSON 字符串，<code>input.type=image_text</code>，可附 <code>text</code>；文件字段为 <code>image</code></td></tr><tr><td><code>audio_file</code></td><td><code>multipart/form-data</code></td><td><code>request</code> 字段为配置 JSON 字符串，<code>input.type=audio_file</code>，不传 <code>text</code>；文件字段为 <code>audio</code></td></tr></table></div>
+<p>图片或 WAV 文件最多 1 MiB。WAV 仅支持 PCM16、16 kHz、单声道、最长 30 秒。<code>output.speech</code> 必填，可为 <code>none</code>、<code>device</code> 或 <code>client</code>；请求不接受未知字段。</p>
+<p>可选 <code>interrupt</code> 默认为 <code>true</code>：轮次开始时设备正在对话、播报或执行任务，会先结束当前会话。设为 <code>false</code> 时不打断，轮次以 <code>failed</code> 结束，<code>error.code=DEVICE_BUSY</code>（<code>retryable=true</code>），本轮已写入的用户消息从历史中撤回；稍后重试即可。</p>
+<p>可选 <code>retention</code> 决定本轮在设备上留下什么，默认为 <code>full</code>：写入聊天记录，并更新对话状态、摘要、长期记忆和日记（它们都从本轮聊天记录抽取）。<code>chat</code> 只写聊天记录，不做这些更新。<code>none</code> 什么都不留：不写聊天记录、不保存图片、不做上述更新，回复只出现在本轮的 <code>assistant_text</code> 中，<code>user_chat_ids</code>、<code>assistant_chat_ids</code> 为空。三种取值下，生成回复时都照常读取已有的聊天记录和记忆。</p>
+<p>可选 <code>tools</code> 决定本轮模型能否调用工具，默认为 <code>all</code>：模型可以调用本次会话可用的设备工具和外部工具。设为 <code>none</code> 时本轮不向模型提供任何工具，适合只需要一句回复、不应触发设备动作或外部任务的轮次。</p>
+<p>还支持 <code>input.type=audio_stream</code>：使用 JSON，声明 <code>audio.format=pcm_s16le</code>、<code>sample_rate=16000</code>、<code>channels=1</code>、<code>container=raw</code>，音频最长 30 秒。音频流输入或 <code>speech=client</code> 须在受理后 15 秒内，以签名 GET 连接 <code>/v1/ws/chat/turns/{turn_id}/audio</code> WebSocket 并等待 <code>ready</code>。客户端输出按元数据接收 MP3、WAV 或 Ogg Opus，在 <code>audio.end</code> 后发送最终序号的 <code>audio.ack</code>；这表示收齐音频，不表示播放结束。断开即结束任务，不支持重连或重放。完整消息格式见 OpenAPI。</p>
+<pre><code>python -m pip install websocket-client sounddevice av
+python examples/local_api.py http://DEVICE_IP:8081 --mic --seconds 10 --credentials credentials.json --timeout 180</code></pre>
+<p>创建成功从响应 <code>data.turn_id</code> 取编号，建议每秒查询一次对应轮次。终态为 <code>completed</code>、<code>failed</code>、<code>cancelled</code>；<code>completed</code> 时读取 <code>data.assistant_text</code>，失败时读取 <code>data.error</code>。<code>transcript</code> 提供转写，<code>user_chat_ids</code>、<code>assistant_chat_ids</code> 关联历史记录。中间状态不应当作最终成功。</p>
+<p>状态还包括 <code>queued</code>（等待执行）、<code>starting</code>（建立会话）、<code>receiving_input</code>（接收录音或音频流）、<code>thinking</code>（等待生成）、<code>responding</code>（生成或交付回复）、<code>cancelling</code>（取消处理中）。<code>input_complete</code> 仅表示输入结束，<code>transcript</code> 可早于终态出现。<code>device_microphone</code> 最长录音 30 秒后自动结束输入，<code>input/complete</code> 用于提前结束。<code>speech=none</code> 仍会调用模型，只是不朗读回复；是否保存对话由 <code>retention</code> 决定。每次请求前可读取 <code>/data/user/device/state</code> 检查当前准入条件。</p>
+<p><code>202</code> 仅表示受理。同一凭据、同一 <code>request_id</code>、相同内容在暂存期限内重放返回原轮次；内容不同返回 <code>409 REQUEST_ID_CONFLICT</code>。重试 HTTP 请求仍须生成新的签名 nonce。<code>interrupt=true</code> 时，新轮次会停止旧会话；相同请求重放不会重复打断。</p>
+<p>轮次终态保留 30 分钟，最多暂存 256 个；设备服务重启会丢失轮次和幂等记录。角色或用户切换、凭据失效、清空历史会使旧轮次停止或不可访问。取消只能作用于该凭据创建的指定轮次。</p>
+<h3>独立文本播报（TTS）</h3>
+<p>将外部应用已经确定的文本直接交给当前角色朗读，例如 Home Assistant 的执行结果。这个接口不调用 LLM，不生成角色回复，也不写入聊天历史。</p>
+<p>提交 JSON 到 <code>POST /data/user/tts/utterances</code>；所有路径相对于 <code>/v1/api</code>，沿用上文的 HMAC 签名：</p>
+<pre><code>{
+  &quot;request_id&quot;: &quot;e14eec98-5f67-445f-b605-bcc0b23f8f75&quot;,
+  &quot;slot&quot;: 1,
+  &quot;text&quot;: &quot;客厅灯已关闭。&quot;
+}</code></pre>
+<p>通过 <code>GET /data/user/tts/utterances/{utterance_id}</code> 查询。取消用 <code>POST /data/user/tts/utterances/{utterance_id}/cancel</code>，正文为空。</p>
+<p>202 仅表示受理，读取 <code>data.utterance_id</code>。状态为 <code>queued</code>、<code>synthesizing</code>、<code>playing</code>、<code>cancelling</code>，终态为 <code>completed</code>、<code>failed</code>、<code>cancelled</code>；只有合成和设备播放都结束才是 <code>completed</code>，失败详情见 <code>data.error</code>。<code>text</code> 去除首尾空白后须为 1–16000 字符，JSON 正文最多 128 KiB；使用当前槽位和当前角色的声音、语言及音量。设备须唤醒且解锁；新播报会打断当前前台会话，新对话也可打断播报，不设播放队列。</p>
+<p>同一凭据、request_id 和相同内容重试返回原任务（200），不同内容返回 409；request_id 与聊天共享命名空间。终态保留 30 分钟，与聊天共用 256 条暂存；服务重启不保留。凭据失效、用户/角色切换或清除历史会终止或使旧任务不可访问，任务最长 180 秒。接口不返回音频文件或音频流。</p>
+<pre><code>python examples/local_api.py http://DEVICE_IP:8081 &quot;客厅灯已关闭。&quot; --credentials credentials.json --tts --timeout 180</code></pre>
+<p><code>playing</code> 以当前播放流的设备开播回执为准。允许动画时，随机匹配一个 Talking 动画。取消请求受理返回 202；已在取消中或已取消返回 200，已完成或失败返回 409。客户端等待超时不会自动取消设备任务。</p>
+<h2>6. 其他业务与结果确认</h2>
+<p>完整路径、字段和响应以离线手册和 OpenAPI 为准：</p>
+<div class="table-scroll"><table><tr><th>分类</th><th>内容</th></tr><tr><td>接入与配对</td><td>在线检测、配对及取消</td></tr><tr><td>设备与状态</td><td>系统信息、能力、设备与对话状态、AI 语言</td></tr><tr><td>角色与主动交互</td><td>角色属性、槽位、模型服装上传与导出、加载、重置及主动交互</td></tr><tr><td>对话与历史</td><td>统一对话、历史查询删除、聊天图片</td></tr><tr><td>记忆与日记</td><td>查询与编辑</td></tr><tr><td>闹钟与备忘录</td><td>资源管理及闹钟启停</td></tr><tr><td>音乐</td><td>上传、文件管理、播放及状态</td></tr><tr><td>声音</td><td>能力、独立文本播报、固定文案试听、控制及声音克隆</td></tr><tr><td>灯光</td><td>作品、预览、编译、播放、应用及总开关</td></tr><tr><td>模型服务</td><td>服务商目录、账号与测试、能力路由、系统提示词、架构及后端切换、最近运行错误</td></tr></table></div>
+<p>配对不会新增设备功能权限。先读取 <code>/data/user/system</code> 的 <code>capabilities</code>，再调用相应功能；手册逐项标出 <code>x-capabilities</code>。实验室 API 文档页面及 AI 服务配置向所有功能标签开放，接口继续使用现有配对签名鉴权。</p>
+<p>接口成功可能表示保存或命令入队，不能统一解释为设备动作已完成。对话查询轮次；模型上传、应用、导出等查询相应任务或加载状态；音乐查询播放状态；声音试听查询 <code>/data/user/tts_audition/state</code>。声音试听仅接受 <code>voice_id</code>、可选 <code>group_key</code>，使用设备当前 AI 语言的固定文案，不接收自定义播报文字。</p>
+<p>模型文件最多 200 MiB、声音克隆文件最多 10 MiB；音乐批量请求最多 200 MiB、64 个文件。普通签名正文及压缩上传分块最多 8 MiB。表单总请求还需包含字段开销，各接口的完整约束以手册为准。</p>
+<p>可选实时状态通道：<code>/v1/ws/events</code>。使用签名 GET 握手，查询参数为 <code>sig</code>、<code>timestamp</code>、<code>nonce</code>、<code>payload_mode=empty</code>、<code>body_hash</code>、<code>user_id</code>，以及非空时的 <code>session_id</code>。签名路径为 <code>/v1/ws/events</code>，不含查询字符串。通道推送状态快照，不提供聊天生成文字流；凭据失效或用户切换等情况会关闭连接。</p>
+<p>建连收到 <code>ready</code> 后，发送 <code>{&quot;type&quot;:&quot;subscribe&quot;,&quot;request_id&quot;:&quot;sub-1&quot;,&quot;data&quot;:{&quot;events&quot;:[&quot;chat_history&quot;,&quot;chat_turn&quot;]}}</code>。等待 <code>result</code> 成功后接收事件；<code>events</code> 是完整替换集合，空数组取消全部订阅。重连后重新订阅，再通过 HTTP 恢复状态。公开契约仅包含 Release 构建和 RELEASE 标签均开放的能力；原始 OpenAPI 描述默认英文。</p>
+<h2>7. 常见问题与反馈</h2>
+<div class="table-scroll"><table><tr><th>现象或返回码</th><th>处理</th></tr><tr><td>无法连接</td><td>检查 IP、端口和局域网互通，先调用 ping</td></tr><tr><td><code>401 REQUEST_EXPIRED</code></td><td>对齐电脑和设备时间，重新生成时间戳及签名</td></tr><tr><td><code>401 NONCE_REUSED</code></td><td>每个 HTTP 请求都生成新 nonce，包括查询和重试</td></tr><tr><td><code>401 LOCAL_SESSION_EXPIRED</code></td><td>使用新的凭据文件重新配对</td></tr><tr><td><code>401 LOCAL_USER_MISMATCH</code></td><td>核对当前用户，重新获取 bootstrap 并配对</td></tr><tr><td><code>401 LOCAL_SECRET_MISMATCH</code> / <code>INVALID_SIGNATURE</code></td><td>核对原始密钥、签名路径、正文字节及各请求头</td></tr><tr><td><code>403</code></td><td>查看响应错误字段及当前设备功能权限；配对不能绕过权限</td></tr><tr><td><code>409 SLOT_MISMATCH</code></td><td>重新读取当前槽位</td></tr><tr><td><code>409 DEVICE_BLOCKED</code> / <code>AMBIENT_MODE_BLOCKED</code></td><td>查看返回 <code>reason</code>，确认设备已唤醒、解锁且当前模式允许对话</td></tr><tr><td><code>413</code> / <code>415</code></td><td>检查大小、Content-Type、输入输出类型和 WAV 格式</td></tr><tr><td><code>503</code></td><td>按错误码确认服务是否就绪或暂存轮次数是否达到限制</td></tr></table></div>
+<p>OpenAPI 的错误响应 <code>code.enum</code> 列出聊天、TTS、闹钟、备忘录及设备克隆录音的本地 HTTP 错误码；操作的 <code>x-error-codes.http</code> 提供机器清单，<code>x-error-codes.task</code> 列出已知异步错误，提供方可能扩展异步错误码。HTTP 202 后的失败应读取 <code>data.error</code>。配对来源不允许返回 <code>403 PAIRING_SOURCE_NOT_ALLOWED</code>；幂等内容冲突返回 <code>409 REQUEST_ID_CONFLICT</code>；不存在的备忘录返回 <code>404 MEMO_NOT_FOUND</code>。</p>
+<p><code>x-error-codes</code> 还涵盖 AI Provider、模型任务、角色重置、记忆及音乐的已知错误；日记的旧格式错误标识列在 <code>legacy_error</code>，实际位于响应 <code>error</code> 字段。已知异步错误含 <code>NO_SPEECH</code>；<code>DEVICE_INTERRUPTED.reason=vad_start</code> 表示检测到语音开始，reason 保持可扩展。</p>
+<p>不同业务的错误结构存在差异，不保证全部使用相同字段。先判断 HTTP 状态，再读取该接口的 <code>code</code>、<code>message</code>、<code>reason</code> 等；不要盲目重试写操作。</p>
+<p>反馈时提供：设备软件版本、文档包 <code>manifest.json</code> 中的源码提交、发生时间及设备时区、HTTP 方法和路径、状态码、脱敏后的响应、相关 <code>request_id</code> / <code>turn_id</code> 和设备现象。不要发送 <code>local_secret</code>、凭据文件或签名请求头。</p>
+<p>管理接口、调试音频、诊断日志和内部维护接口不属于本次对外契约。本文档包核对的是源码接口契约；工程编译、真实设备调用及云端完整链路需分别验证。</p></main></body></html>
